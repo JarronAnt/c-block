@@ -1,10 +1,11 @@
+//includes
 #include <iostream>
 #include <ctime>
 #include <vector>
 #include <string>
 #include <tr1/functional>
 
-
+//namespaces
 using namespace std;
 
 //Transaction
@@ -44,36 +45,43 @@ class Block{
 };
 
 Block::Block(int idx,Transaction d, size_t prevHash){
+    //populate the data with data passed in
     index = idx;
     data = d;
     prevHash = prevHash;
     blockHash = genHash();
 }
 
+//return the index
 int Block::getIndex(){
     return index;
 }
 
 size_t Block::genHash(){
     
+    //create a string of all the data 
     string toHash = to_string(data.amount)+ data.revieverKey + data.senderKey + to_string(data.timestamp);
 
+    //create two has vars
     std::tr1::hash<string> toDataHash;
     std::tr1::hash<string> priorHash;
    // std::tr1::hash<size_t> finalH; 
 
-    
+    //xor the two has vars and move it one bit left using the bitwise operator
     return toDataHash(toHash) ^ (priorHash(to_string(prevHash)) << 1);
 }
 
+//get the hash 
 size_t Block::getHash(){
     return blockHash;
 }
 
+//get previous hash
 size_t Block::getPrevHash(){
     return prevHash;
 }
 
+//check if the hashs match up
 bool Block::isValid(){
     return genHash() == blockHash; 
 }
@@ -81,29 +89,36 @@ bool Block::isValid(){
 //blockchain
 class Blockchain{
     private:
+        //constructor
         Block createGenBlock();
 
     public:
+        //the chain
         vector<Block> chain;
         Blockchain();
 
+        //funcs 
         void addBlock(Transaction data);
         bool isChainValid();
 
-        //to test demo only
+        //to test demo only this is just to test the security 
         Block *getLatestBlock();
 
+        //print out the data off all blocks on the chain
         void printChain();
 };  
 
 Blockchain::Blockchain(){
+    //create a genesis block and push it into the chain 
     Block genesisBlock = createGenBlock();
     chain.push_back(genesisBlock);
 }
 
 void Blockchain::printChain() {
+    //create an interator 
     std::vector<Block>::iterator it;
     
+    //iterate through every block on the chain and print its data
     for (it = chain.begin(); it != chain.end(); ++it)
     {
         Block currentBlock = *it;
@@ -120,13 +135,15 @@ void Blockchain::printChain() {
 }
 
 Block Blockchain::createGenBlock(){
+    //create some data for the genesis block
     time_t currTime;
     Transaction d;
     d.amount = 0;
-    d.revieverKey = "None";
-    d.senderKey = "None";
+    d.revieverKey = "Gen";
+    d.senderKey = "Gen";
     d.timestamp = time(&currTime); 
 
+    //hash the genesis block 
     string toHash = to_string(d.amount)+ d.revieverKey + d.senderKey + to_string(d.timestamp);
 
     std::tr1::hash<string> toDataHash;
@@ -145,8 +162,11 @@ Block *Blockchain::getLatestBlock(){
 }
 
 void Blockchain::addBlock(Transaction d){
+    //get the index
     int idx = (int)chain.size(); 
+    //get the previous has and if prev hash doesnt exist set it to 0
     size_t pHash = (int)chain.size() > 0 ? getLatestBlock()->getHash() : 0;
+    //create the block and push to the chain
     Block newBlock(idx, d,pHash);
     chain.push_back(newBlock);
 }
@@ -187,6 +207,7 @@ int main(){
     d1.senderKey = "SSPYR0";
     d1.timestamp = time(&d1Time);
 
+    //second block data 
     Transaction d2;
     time_t d2Time;
     d2.amount = 1.8; 
